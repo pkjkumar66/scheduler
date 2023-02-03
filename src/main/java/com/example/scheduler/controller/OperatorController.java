@@ -19,15 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class OperatorController {
     private final OperatorService operatorService;
 
-    @PutMapping(value = "/add")
-    ResponseEntity<OperatorDto> addOperatorDetails(@RequestBody OperatorDto operatorDto) {
+    @PutMapping("/add")
+    ResponseEntity<OperatorDto> addOperatorDetails(@RequestBody OperatorDto operator) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(operatorService.addOperator(operatorDto));
+                .body(operatorService.addOperator(operator));
     }
 
-    @GetMapping(value = "/{emailId}")
-    ResponseEntity<OperatorDto> getOperatorDetails(@PathVariable String emailId) {
+    @GetMapping("/{email}")
+    ResponseEntity<OperatorDto> getOperatorDetails(@PathVariable String email) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(operatorService.getOperatorDetails(emailId));
+                .body(operatorService.getOperatorDetails(email));
     }
 }

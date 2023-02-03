@@ -9,9 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
@@ -22,24 +20,41 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public OperatorDto addOperator(OperatorDto requestDto) {
         Operator operator = Operator.builder()
-                .createdAt(Timestamp.from(Instant.now()))
-                .updatedAt(Timestamp.from(Instant.now()))
                 .name(requestDto.getName())
-                .emailId(requestDto.getEmailId())
+                .email(requestDto.getEmail())
                 .build();
+
+        Optional<Operator> getExisitingOperator = operatorRepository.findByEmail(requestDto.getEmail());
+        if (getExisitingOperator.isPresent()) {
+//            throw new CustomerAlreadyExistsException("Customer already exists!");
+            return OperatorDto.builder()
+                    .id(getExisitingOperator.get().getId())
+                    .name(requestDto.getName())
+                    .email(requestDto.getEmail())
+                    .error("Operator already exists!")
+                    .build();
+        }
+
         Operator saved = operatorRepository.save(operator);
         return modelMapper.map(saved, OperatorDto.class);
     }
 
     @Override
     public OperatorDto getOperatorDetails(String emailId) {
-        Operator byEmailId = operatorRepository.findByEmailId(emailId);
-        if (Objects.isNull(byEmailId)) {
+        Optional<Operator> operator = operatorRepository.findByEmail(emailId);
+        if (operator.isPresent()) {
+            Operator c = operator.get();
             return OperatorDto.builder()
-                    .emailId(emailId)
-                    .error("Operator data doesn't exist for this emailID")
+                    .id(c.getId())
+                    .name(c.getName())
+                    .email(c.getEmail())
                     .build();
         }
-        return modelMapper.map(byEmailId, OperatorDto.class);
+
+//        throw new NotFoundException("Operator data doesn't exist for this email");
+        return OperatorDto.builder()
+                .email(emailId)
+                .error("Operator data doesn't exist for this emailId")
+                .build();
     }
 }
