@@ -13,7 +13,7 @@ public interface AppointmentService {
 
     AppointmentDto rescheduleOrCancelAppointment(AppointmentRequestDto requestDto);
 
-    List<Interval> getBookedSlots(Long operatorId, Date date);
+    List<Interval> getBookedSlots(String email, Date date);
 
-    List<Interval> getOpenSlots(Long operatorId, Date date);
+    List<Interval> getOpenSlots(String email, Date date);
 }

@@ -3,11 +3,16 @@ package com.example.scheduler.service.impl;
 import com.example.scheduler.dtos.AppointmentDto;
 import com.example.scheduler.dtos.AppointmentRequestDto;
 import com.example.scheduler.dtos.Interval;
+import com.example.scheduler.entities.Customer;
+import com.example.scheduler.entities.Operator;
 import com.example.scheduler.enums.Status;
 import com.example.scheduler.exception.InValidDateException;
 import com.example.scheduler.exception.InValidIntervalException;
 import com.example.scheduler.exception.NotAvailableSlot;
+import com.example.scheduler.exception.NotFoundException;
 import com.example.scheduler.repository.AppointmentDao;
+import com.example.scheduler.repository.CustomerRepository;
+import com.example.scheduler.repository.OperatorRepository;
 import com.example.scheduler.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,32 +26,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.hibernate.internal.util.collections.CollectionHelper.isNotEmpty;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentDao appointmentDao;
+    private final CustomerRepository customerRepository;
+    private final OperatorRepository operatorRepository;
 
     @Autowired
-    AppointmentServiceImpl(AppointmentDao appointmentDao) {
+    AppointmentServiceImpl(AppointmentDao appointmentDao,
+                           CustomerRepository customerRepository,
+                           OperatorRepository operatorRepository) {
+
         this.appointmentDao = appointmentDao;
+        this.customerRepository = customerRepository;
+        this.operatorRepository = operatorRepository;
     }
 
     @Override
     public AppointmentDto bookAppointment(AppointmentRequestDto requestDto) {
         validateInput(requestDto);
 
+        Customer customer = customerRepository.findByEmail(requestDto.getCustomerEmail()).get();
+        Operator operator = operatorRepository.findByEmail(requestDto.getOperatorEmail()).get();
+
         AppointmentDto appointmentDto = AppointmentDto.builder()
-                .customerId(requestDto.getCustomerId())
-                .operatorId(requestDto.getOperatorId())
+                .customerId(customer.getId())
+                .operatorId(operator.getId())
                 .startTime(requestDto.getInterval().getStartTime())
                 .endTime(requestDto.getInterval().getEndTime())
                 .date(requestDto.getDate())
                 .build();
 
         // any booking
-        if (requestDto.getOperatorId() == null) {
+        if (requestDto.getOperatorEmail() == null) {
             List<AppointmentDto> allOpenSlots = getAllOpenSlots(requestDto.getDate(), requestDto.getInterval());
             if (isNotEmpty(allOpenSlots)) {
                 appointmentDto.setOperatorId(allOpenSlots.get(0).getOperatorId());
@@ -54,7 +70,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 throw new NotAvailableSlot("There is no any slot available for booking, please try after sometime!");
             }
         } else {
-            List<Interval> allBookedSlots = getBookedSlots(requestDto.getOperatorId(), requestDto.getDate());
+            List<Interval> allBookedSlots = getBookedSlots(requestDto.getOperatorEmail(), requestDto.getDate());
             if (isNotEmpty(allBookedSlots) && allBookedSlots.contains(requestDto.getInterval())) {
                 throw new NotAvailableSlot("This slot is not available for booking, please choose other slots!");
             }
@@ -66,7 +82,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentDto rescheduleOrCancelAppointment(AppointmentRequestDto requestDto) {
         validateInput(requestDto);
-        List<Interval> allBookedSlots = getBookedSlots(requestDto.getOperatorId(), requestDto.getDate());
+
+        List<Interval> allBookedSlots = getBookedSlots(requestDto.getOperatorEmail(), requestDto.getDate());
+        Customer customer = customerRepository.findByEmail(requestDto.getCustomerEmail()).get();
+        Operator operator = operatorRepository.findByEmail(requestDto.getOperatorEmail()).get();
 
         if (isNotEmpty(allBookedSlots)
                 && Objects.nonNull(requestDto.getInterval())
@@ -75,8 +94,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         AppointmentDto appointmentDto = AppointmentDto.builder()
-                .customerId(requestDto.getCustomerId())
-                .operatorId(requestDto.getOperatorId())
+                .customerId(customer.getId())
+                .operatorId(operator.getId())
                 .startTime(requestDto.getInterval().getStartTime())
                 .endTime(requestDto.getInterval().getEndTime())
                 .date(requestDto.getDate())
@@ -92,9 +111,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<Interval> getBookedSlots(Long operatorId, Date date) {
+    public List<Interval> getBookedSlots(String email, Date date) {
+        Optional<Operator> operator = operatorRepository.findByEmail(email);
         List<AppointmentDto> bookedAppointments =
-                appointmentDao.findAllBookedSlotsByOperatorId(operatorId, date, List.of(Status.BOOKED, Status.RESCHEDULED));
+                appointmentDao.findAllBookedSlotsByOperatorId(operator.get().getId(), date, List.of(Status.BOOKED, Status.RESCHEDULED));
         return bookedAppointments.stream()
                 .map(appointment -> Interval.builder()
                         .startTime(appointment.getStartTime())
@@ -104,9 +124,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<Interval> getOpenSlots(Long operatorId, Date date) {
+    public List<Interval> getOpenSlots(String email, Date date) {
         List<Interval> allIntervals = getAllIntervals();
-        List<Interval> bookedSlots = getBookedSlots(operatorId, date);
+        List<Interval> bookedSlots = getBookedSlots(email, date);
         allIntervals.removeAll(bookedSlots);
         List<Interval> openSlots = merge(allIntervals);
 
@@ -221,8 +241,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     private void validateInput(AppointmentRequestDto requestDto) {
         if (Objects.nonNull(requestDto)) {
 
-            if (requestDto.getCustomerId() == null) {
-                throw new IllegalArgumentException("CustomerId can't be null");
+            if (requestDto.getCustomerEmail() == null) {
+                throw new IllegalArgumentException("CustomerEmail can't be null");
+            }
+
+            Optional<Customer> customer = customerRepository.findByEmail(requestDto.getCustomerEmail());
+            if (customer.isEmpty()) {
+                throw new NotFoundException("Customer doesn't exists!");
             }
 
             Interval interval = requestDto.getInterval();

@@ -13,8 +13,8 @@ import java.sql.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AppointmentRequestDto {
-    private Long customerId;
-    private Long operatorId;
+    private String customerEmail;
+    private String operatorEmail;
     private Interval interval;
     private Date date;
 }

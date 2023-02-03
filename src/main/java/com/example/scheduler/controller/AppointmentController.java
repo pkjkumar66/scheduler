@@ -41,15 +41,15 @@ public class AppointmentController {
                 .body(appointmentService.rescheduleOrCancelAppointment(requestDto));
     }
 
-    @GetMapping(value = "/booked_slots/{id}")
-    ResponseEntity<List<Interval>> getAllBookedSlots(@PathVariable(name = "id") Long operatorId, Date date) {
+    @GetMapping(value = "/booked_slots/{email}")
+    ResponseEntity<List<Interval>> getAllBookedSlots(@PathVariable String email, Date date) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(appointmentService.getBookedSlots(operatorId, date));
+                .body(appointmentService.getBookedSlots(email, date));
     }
 
-    @GetMapping(value = "/open_slots/{id}")
-    ResponseEntity<List<Interval>> getAllOpenSlots(@PathVariable(name = "id") Long operatorId, Date date) {
+    @GetMapping(value = "/open_slots/{email}")
+    ResponseEntity<List<Interval>> getAllOpenSlots(@PathVariable String email, Date date) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(appointmentService.getOpenSlots(operatorId, date));
+                .body(appointmentService.getOpenSlots(email, date));
     }
 }
