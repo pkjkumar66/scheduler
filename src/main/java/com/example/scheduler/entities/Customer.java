@@ -3,8 +3,8 @@ package com.example.scheduler.entities;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -12,14 +12,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
+
+import static jakarta.persistence.GenerationType.SEQUENCE;
 
 @Entity
 @Table(
         name = "customer",
-        uniqueConstraints = @UniqueConstraint(name = "unique_email_id", columnNames = {"email_id"})
+        uniqueConstraints = @UniqueConstraint(name = "customer_email_unique", columnNames = {"email"})
 )
 @Data
 @Builder
@@ -27,17 +28,23 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class Customer {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
+    @SequenceGenerator(
+            name = "customer_sequence",
+            sequenceName = "customer_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(
+            strategy = SEQUENCE,
+            generator = "customer_sequence"
+    )
+    @Column(
+            name = "id"
+    )
     private Long id;
 
     @Column(name = "created_at")
     @CreationTimestamp
     private Timestamp createdAt;
-
-    @Column(name = "updated_at")
-    @UpdateTimestamp
-    private Timestamp updatedAt;
 
     @Column(
             name = "name",
@@ -47,9 +54,9 @@ public class Customer {
     private String name;
 
     @Column(
-            name = "email_id",
+            name = "email",
             nullable = false,
             columnDefinition = "TEXT"
     )
-    private String emailId;
+    private String email;
 }

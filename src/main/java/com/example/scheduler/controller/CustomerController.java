@@ -20,15 +20,15 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
-    @PutMapping(value = "/add")
+    @PutMapping("/add")
     ResponseEntity<CustomerDto> addCustomerDetails(@RequestBody CustomerDto customer) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(customerService.addCustomer(customer));
     }
 
-    @GetMapping(value = "/{emailId}")
-    ResponseEntity<CustomerDto> getCustomerDetails(@PathVariable String emailId) {
+    @GetMapping("/{email}")
+    ResponseEntity<CustomerDto> getCustomerDetails(@PathVariable String email) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(customerService.getCustomerDetails(emailId));
+                .body(customerService.getCustomerDetails(email));
     }
 }
