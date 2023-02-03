@@ -26,7 +26,7 @@ public class OperatorServiceImpl implements OperatorService {
 
         Optional<Operator> getExisitingOperator = operatorRepository.findByEmail(requestDto.getEmail());
         if (getExisitingOperator.isPresent()) {
-//            throw new CustomerAlreadyExistsException("Customer already exists!");
+//            throw new OperatorAlreadyExistsException("Operator already exists!");
             return OperatorDto.builder()
                     .id(getExisitingOperator.get().getId())
                     .name(requestDto.getName())
