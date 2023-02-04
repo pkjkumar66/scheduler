@@ -7,19 +7,45 @@ It's a booking scheduler website for a car service agency where:
 
 ---
 
-### Install dependencies to run this appplication:
+### Dependencies to run this appplication:
 
 - [download homebrew](https://brew.sh/)
 - [download docker ](https://docs.docker.com/desktop/install/mac-install/) to run app/mysql instance
 - [use this article to set up mysql instance in docker container](https://www.appsdeveloperblog.com/how-to-start-mysql-in-docker-container/)
 - [use this to install mvn](https://formulae.brew.sh/formula/maven)
 
+### To start the mysql db instance
+```
+docker run -d -p 3306:3306 --name mysql-docker-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=pankaj -e MYSQL_USER=root -e MYSQL_PASSWORD=root mysql/mysql-server:latest
+```
 
 ### To start the application
 - Step 1: mvn install
 - Step 2: java -jar target/scheduler-0.0.1-SNAPSHOT.jar
 - Step 3: access the java application application from browser
   http://localhost:8080
+
+---
+
+### How to use all APIs:
+- CustomerController
+  - /add: to add customer
+  - /{email}: to get customer info
+
+- OperatorController
+  - /add: to add service operator
+  - /{email}: to get service operator info
+  
+- AppointmentController:
+  - /book: to book appointment
+  - /reschedule_or_cancel: to resheaudle or cancel appointment
+  - /booked_slots: to get booked slots of a service operator
+  - /open_slots: to get open slots of a service operator
+
+
+### How to use these APIs to book an appointment:
+- Step 1: add any cutomer and service operator
+- Step 2: use api to book/reschedule/cancel appointment
 
 ---
 
@@ -67,7 +93,7 @@ It's a booking scheduler website for a car service agency where:
 ### Improvement:
 
 - Error handling can be done better
-- we will get status as 500 if above condition is not getting fulfilled
+- we will get status as 500 if above condition is not getting fulfilled so please see console msg
 - unit/integration test can be added
 - we can think of all the edge cases of the problem and implement it
 - we can also support appointment like (1.5 - 2.5, 4.15 - 5.15)
