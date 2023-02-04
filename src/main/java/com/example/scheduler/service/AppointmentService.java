@@ -4,7 +4,6 @@ import com.example.scheduler.dtos.AppointmentDto;
 import com.example.scheduler.dtos.AppointmentRequestDto;
 import com.example.scheduler.dtos.Interval;
 
-import java.sql.Date;
 import java.util.List;
 
 public interface AppointmentService {
@@ -13,7 +12,7 @@ public interface AppointmentService {
 
     AppointmentDto rescheduleOrCancelAppointment(AppointmentRequestDto requestDto);
 
-    List<Interval> getBookedSlots(String email, Date date);
+    List<Interval> getBookedSlots(String email, String date);
 
-    List<Interval> getOpenSlots(String email, Date date);
+    List<Interval> getOpenSlots(String email, String date);
 }

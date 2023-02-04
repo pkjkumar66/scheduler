@@ -3,10 +3,13 @@ package com.example.scheduler.entities;
 import com.example.scheduler.enums.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,16 +20,33 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.sql.Date;
 import java.sql.Timestamp;
 
+import static jakarta.persistence.GenerationType.SEQUENCE;
+
 @Entity
-@Table(name = "appointment")
-@Builder
+@Table(
+        name = "appointment",
+        uniqueConstraints = @UniqueConstraint(
+                name = "appointment_uidx",
+                columnNames = {"operatorId", "customerId", "startTime", "endTime", "date"})
+)
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Appointment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @SequenceGenerator(
+            name = "appointment_sequence",
+            sequenceName = "appointment_sequence",
+            allocationSize = 1
+    )
+    @GeneratedValue(
+            strategy = SEQUENCE,
+            generator = "appointment_sequence"
+    )
+    @Column(
+            name = "id"
+    )
     private Long id;
 
     @Column(name = "created_at")
@@ -71,5 +91,6 @@ public class Appointment {
             name = "status",
             nullable = false
     )
+    @Enumerated(EnumType.STRING)
     private Status status;
 }
