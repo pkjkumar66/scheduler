@@ -40,13 +40,13 @@ public class AppointmentController {
     }
 
     @GetMapping("/booked_slots/{email}")
-    ResponseEntity<List<Interval>> getAllBookedSlots(@PathVariable String email, @RequestParam() String date) {
+    ResponseEntity<List<Interval>> getAllBookedSlots(@PathVariable String email, @RequestParam String date) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(appointmentService.getOperatorBookedSlots(email, date));
     }
 
     @GetMapping("/open_slots/{email}")
-    ResponseEntity<List<Interval>> getAllOpenSlots(@PathVariable String email, @RequestParam() String date) {
+    ResponseEntity<List<Interval>> getAllOpenSlots(@PathVariable String email, @RequestParam String date) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(appointmentService.getOpenSlots(email, date));
     }

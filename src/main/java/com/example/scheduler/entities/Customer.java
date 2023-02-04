@@ -20,7 +20,7 @@ import static jakarta.persistence.GenerationType.SEQUENCE;
 @Entity
 @Table(
         name = "customer",
-        uniqueConstraints = @UniqueConstraint(name = "customer_email_unique", columnNames = {"email"})
+        uniqueConstraints = @UniqueConstraint(name = "customer_email_uidx", columnNames = {"email"})
 )
 @Data
 @Builder
