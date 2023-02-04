@@ -15,18 +15,21 @@ It's a booking scheduler website for a car service agency where:
 - [use this to install mvn](https://formulae.brew.sh/formula/maven)
 
 ### To start the mysql db instance
+- Step 1: 
 ```
 docker run -d -p 3306:3306 --name mysql-docker-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=pankaj -e MYSQL_USER=root -e MYSQL_PASSWORD=root mysql/mysql-server:latest
 ```
+- Step 2: sudo docker exec -it mysql-docker-container bash
+- Step 3: mysql -u root -p
+- Step 4: show databases;
+- Step 5: use pankaj;
 
 ### To start the application
 - Step 1: mvn install
 - Step 2: java -jar target/scheduler-0.0.1-SNAPSHOT.jar
-- Step 3: access the java application application from browser
-  http://localhost:8080
+- Step 3: acess the java app using postman/local terminal
 
 ---
-
 ### How to use all APIs:
 - CustomerController
   - /add: to add customer
