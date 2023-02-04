@@ -2,6 +2,7 @@ package com.example.scheduler.controller;
 
 import com.example.scheduler.dtos.AppointmentDto;
 import com.example.scheduler.dtos.AppointmentRequestDto;
+import com.example.scheduler.dtos.BookAppointmentDto;
 import com.example.scheduler.dtos.Interval;
 import com.example.scheduler.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping("/book")
-    ResponseEntity<AppointmentDto> bookAppointment(@RequestBody @NonNull AppointmentRequestDto requestDto) {
+    ResponseEntity<AppointmentDto> bookAppointment(@RequestBody @NonNull BookAppointmentDto requestDto) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(appointmentService.bookAppointment(requestDto));
     }
@@ -41,7 +42,7 @@ public class AppointmentController {
     @GetMapping("/booked_slots/{email}")
     ResponseEntity<List<Interval>> getAllBookedSlots(@PathVariable String email, @RequestParam() String date) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(appointmentService.getBookedSlots(email, date));
+                .body(appointmentService.getOperatorBookedSlots(email, date));
     }
 
     @GetMapping("/open_slots/{email}")

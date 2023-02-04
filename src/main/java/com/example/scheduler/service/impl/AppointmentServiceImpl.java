@@ -1,7 +1,9 @@
 package com.example.scheduler.service.impl;
 
 import com.example.scheduler.dtos.AppointmentDto;
+import com.example.scheduler.dtos.AppointmentMetaData;
 import com.example.scheduler.dtos.AppointmentRequestDto;
+import com.example.scheduler.dtos.BookAppointmentDto;
 import com.example.scheduler.dtos.Interval;
 import com.example.scheduler.entities.Appointment;
 import com.example.scheduler.entities.Customer;
@@ -53,8 +55,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public AppointmentDto bookAppointment(AppointmentRequestDto requestDto) {
-        validateInput(requestDto);
+    public AppointmentDto bookAppointment(BookAppointmentDto requestDto) {
+        validateBookingInput(requestDto);
 
         Customer customer = customerRepository.findByEmail(requestDto.getCustomerEmail()).get();
         Operator operator = operatorRepository.findByEmail(requestDto.getOperatorEmail()).get();
@@ -78,7 +80,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 throw new NotAvailableSlot("There is no any slot available for booking, please try after sometime!");
             }
         } else {
-            List<Interval> allBookedSlots = getBookedSlots(requestDto.getOperatorEmail(), requestDto.getDate());
+            List<Interval> allBookedSlots = getOperatorBookedSlots(requestDto.getOperatorEmail(), requestDto.getDate());
             if (isNotEmpty(allBookedSlots) && allBookedSlots.contains(requestDto.getInterval())) {
                 throw new NotAvailableSlot("This slot is not available for booking, please choose other slots!");
             }
@@ -91,37 +93,41 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentDto rescheduleOrCancelAppointment(AppointmentRequestDto requestDto) {
         validateInput(requestDto);
 
-        List<Interval> allBookedSlots = getBookedSlots(requestDto.getOperatorEmail(), requestDto.getDate());
         Customer customer = customerRepository.findByEmail(requestDto.getCustomerEmail()).get();
         Operator operator = operatorRepository.findByEmail(requestDto.getOperatorEmail()).get();
 
-        if (isNotEmpty(allBookedSlots)
-                && Objects.nonNull(requestDto.getInterval())
-                && allBookedSlots.contains(requestDto.getInterval())) {
-            throw new NotAvailableSlot("This slot is not available for reschedule, please choose other slots!");
+        List<Interval> customerBookedSlots = getCustomerBookedSlots(customer.getEmail(), requestDto.getDate());
+        if (!customerBookedSlots.contains(requestDto.getMetaData().getFrom())) {
+            throw new NotFoundException("This slot is not booked yet, so we won't be able to make any changes!");
         }
 
+        AppointmentMetaData metaData = requestDto.getMetaData();
         AppointmentDto appointmentDto = AppointmentDto.builder()
                 .customerId(customer.getId())
                 .operatorId(operator.getId())
-                .interval(Interval.builder()
-                        .startTime(requestDto.getInterval().getStartTime())
-                        .endTime(requestDto.getInterval().getEndTime())
-                        .build())
                 .date(requestDto.getDate())
+                .status(metaData.getStatus())
                 .build();
 
-        if (Objects.nonNull(requestDto.getInterval())) {
-            update(appointmentDto, Status.RESCHEDULED);
-        } else {
-            update(appointmentDto, Status.CANCELLED);
-        }
+        if (Status.CANCELLED.equals(metaData.getStatus())) {
+            return update(appointmentDto, metaData);
+        } else if (Status.RESCHEDULED.equals(metaData.getStatus())) {
+            List<Interval> allBookedSlots = getOperatorBookedSlots(requestDto.getOperatorEmail(), requestDto.getDate());
+            if (isNotEmpty(allBookedSlots)
+                    && Objects.nonNull(metaData.getTo())
+                    && allBookedSlots.contains(metaData.getTo())) {
+                throw new NotAvailableSlot("This slot is not available for reschedule, please choose other slots!");
+            }
 
+            if (Objects.nonNull(metaData.getTo())) {
+                return update(appointmentDto, metaData);
+            }
+        }
         return null;
     }
 
     @Override
-    public List<Interval> getBookedSlots(String email, String date) {
+    public List<Interval> getOperatorBookedSlots(String email, String date) {
         Optional<Operator> operator = operatorRepository.findByEmail(email);
         List<AppointmentDto> bookedAppointments =
                 findAllBookedSlotsByOperatorId(operator.get().getId(), Date.valueOf(date), List.of(Status.BOOKED, Status.RESCHEDULED));
@@ -134,9 +140,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    public List<Interval> getCustomerBookedSlots(String email, String date) {
+        Optional<Customer> customer = customerRepository.findByEmail(email);
+        List<AppointmentDto> bookedAppointments =
+                findAllBookedSlotsByCustomerId(customer.get().getId(), Date.valueOf(date), List.of(Status.BOOKED, Status.RESCHEDULED));
+        return bookedAppointments.stream()
+                .map(appointment -> Interval.builder()
+                        .startTime(appointment.getInterval().getStartTime())
+                        .endTime(appointment.getInterval().getEndTime())
+                        .build())
+                .toList();
+    }
+
+    @Override
     public List<Interval> getOpenSlots(String email, String date) {
         List<Interval> allIntervals = getAllIntervals();
-        List<Interval> bookedSlots = getBookedSlots(email, date);
+        List<Interval> bookedSlots = getOperatorBookedSlots(email, date);
         allIntervals.removeAll(bookedSlots);
         List<Interval> openSlots = merge(allIntervals);
 
@@ -262,6 +281,35 @@ public class AppointmentServiceImpl implements AppointmentService {
                 throw new NotFoundException("Customer doesn't exists!");
             }
 
+            AppointmentMetaData metaData = requestDto.getMetaData();
+            Interval interval = metaData.getFrom();
+            if (Objects.nonNull(interval) &&
+                    interval.getStartTime() >= interval.getEndTime()
+                    || interval.getStartTime() < 1
+                    || interval.getEndTime() > 24
+                    || (interval.getEndTime() - interval.getStartTime() != 1)) {
+
+                throw new InValidIntervalException("Invalid interval");
+            }
+
+            if (getDateFromString(requestDto.getDate()).equals(Date.from(Instant.now()))) {
+                throw new InValidDateException("Invalid date");
+            }
+        }
+    }
+
+    private void validateBookingInput(BookAppointmentDto requestDto) {
+        if (Objects.nonNull(requestDto)) {
+
+            if (requestDto.getCustomerEmail() == null) {
+                throw new IllegalArgumentException("CustomerEmail can't be null");
+            }
+
+            Optional<Customer> customer = customerRepository.findByEmail(requestDto.getCustomerEmail());
+            if (customer.isEmpty()) {
+                throw new NotFoundException("Customer doesn't exists!");
+            }
+
             Interval interval = requestDto.getInterval();
             if (Objects.nonNull(interval) &&
                     interval.getStartTime() >= interval.getEndTime()
@@ -302,19 +350,35 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     // need to update
-    private AppointmentDto update(AppointmentDto appointmentDto, Status status) {
+    private AppointmentDto update(AppointmentDto appointmentDto, AppointmentMetaData metaData) {
         Optional<Appointment> optionalAppointment =
-                appointmentRepository.findByIdAndDate(appointmentDto.getOperatorId(), Date.valueOf(appointmentDto.getDate()));
+                appointmentRepository.findByIdAndDate(
+                        appointmentDto.getOperatorId(),
+                        metaData.getFrom().getStartTime(),
+                        metaData.getFrom().getEndTime(),
+                        Date.valueOf(appointmentDto.getDate()));
 
         if (optionalAppointment.isPresent()) {
             Appointment appointment = optionalAppointment.get();
-            appointment.setStartTime(appointment.getStartTime());
-            appointment.setEndTime(appointment.getEndTime());
-            appointment.setDate(Date.valueOf(appointmentDto.getDate()));
-            appointment.setStatus(status);
+            if (Status.RESCHEDULED.equals(metaData.getStatus())) {
+                appointment.setStartTime(metaData.getTo().getStartTime());
+                appointment.setEndTime(metaData.getTo().getEndTime());
+                appointment.setDate(Date.valueOf(appointmentDto.getDate()));
+            }
+            appointment.setStatus(metaData.getStatus());
             appointment.setUpdatedAt(Timestamp.from(Instant.now()));
             Appointment saved = appointmentRepository.save(appointment);
-            return modelMapper.map(saved, AppointmentDto.class);
+            return AppointmentDto.builder()
+                    .appointmentId(saved.getId())
+                    .customerId(saved.getCustomerId())
+                    .operatorId(saved.getOperatorId())
+                    .interval(Interval.builder()
+                            .startTime(saved.getStartTime())
+                            .endTime(saved.getEndTime())
+                            .build())
+                    .status(saved.getStatus())
+                    .date(saved.getDate().toString())
+                    .build();
         }
 
         return null;
@@ -339,7 +403,26 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     }
 
-    private List<AppointmentDto> findAllBookedSlots(java.util.Date date, List<Status> statusList) {
+    private List<AppointmentDto> findAllBookedSlotsByCustomerId(Long customerId, Date date, List<Status> statusList) {
+        Optional<List<Appointment>> bookedAppointments = appointmentRepository.findByCustomerId(customerId, date, statusList);
+
+        return bookedAppointments.map(appointments -> appointments.stream()
+                .map(appointment -> AppointmentDto.builder()
+                        .appointmentId(appointment.getId())
+                        .customerId(appointment.getCustomerId())
+                        .operatorId(appointment.getOperatorId())
+                        .date(appointment.getDate().toString())
+                        .interval(Interval.builder()
+                                .startTime(appointment.getStartTime())
+                                .endTime(appointment.getEndTime())
+                                .build())
+                        .status(appointment.getStatus())
+                        .build())
+                .collect(Collectors.toList())).orElseGet(ArrayList::new);
+
+    }
+
+    private List<AppointmentDto> findAllBookedSlots(Date date, List<Status> statusList) {
         Optional<List<Appointment>> bookedAppointments = appointmentRepository.find(date, statusList);
         return bookedAppointments.map(appointments -> appointments.stream()
                 .map(appointment -> modelMapper.map(appointment, AppointmentDto.class))

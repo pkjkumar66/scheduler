@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class AppointmentRequestDto {
     private String customerEmail;
     private String operatorEmail;
-    private Interval interval;
     private String date;
+    private AppointmentMetaData metaData;
 }

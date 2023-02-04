@@ -6,16 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppointmentDto {
-    private Long appointmentId;
-    private Long operatorId;
-    private Long customerId;
-    private Interval interval;
-    private String date;
+public class AppointmentMetaData {
+    private Interval from;
+    private Interval to;
     private Status status;
 }
