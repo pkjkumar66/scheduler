@@ -7,12 +7,19 @@ It's a booking scheduler website for a car service agency where:
 
 ---
 
+### Install dependencies to run this appplication:
 
-### How to Run This APP:
-- download homebrew:
-- download docker to run app/mysql instance
-- use this command to get mysql instance: docker pull mysql/mysql-server:latest
-- use this command to run mysql instance:
+- [download homebrew](https://brew.sh/)
+- [download docker ](https://docs.docker.com/desktop/install/mac-install/) to run app/mysql instance
+- [use this article to set up mysql instance in docker container](https://www.appsdeveloperblog.com/how-to-start-mysql-in-docker-container/)
+- [use this to install mvn](https://formulae.brew.sh/formula/maven)
+
+
+### To start the application
+- Step 1: mvn install
+- Step 2: java -jar target/scheduler-0.0.1-SNAPSHOT.jar
+- Step 3: access the java application application from browser
+  http://localhost:8080
 
 ---
 
@@ -62,12 +69,25 @@ It's a booking scheduler website for a car service agency where:
 - Error handling can be done better
 - we will get status as 500 if above condition is not getting fulfilled
 - unit/integration test can be added
+- we can think of all the edge cases of the problem and implement it
 - we can also support appointment like (1.5 - 2.5, 4.15 - 5.15)
 - we can also add 12hr time format including an Enum like 12hr/24hr format
 
 ---
+### References:
 
+- If getting this error: \
+  Error executing DDL "alter table operator add constraint operator_email_idx unique (email_id)"
+  via JDBC Statement then we can change the property:
+[stackoverflow](https://stackoverflow.com/questions/438146/what-are-the-possible-values-of-the-hibernate-hbm2ddl-auto-configuration-and-wha/1689769#1689769)
 
+  - I have used: spring.jpa.hibernate.ddl-auto=create-drop
+  - to fix above issue we can use: spring.jpa.hibernate.ddl-auto=update
+  
+- Error while datatbase setup: \
+  - check database name
+  - check root user name
+  - check root user password
 
 
 
