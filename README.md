@@ -21,8 +21,8 @@ It's a booking scheduler website for a car service agency where:
 ```
 docker run -d -p 3306:3306 --name mysql-docker-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=pankaj -e MYSQL_USER=root -e MYSQL_PASSWORD=root mysql/mysql-server:latest
 ```
-- Step 2: sudo docker exec -it mysql-docker-container bash
-- Step 3: mysql -u root -p
+- Step 2: sudo docker exec -it mysql-docker-container bash [use your mac password]
+- Step 3: mysql -u root -p [use password: root]
 - Step 4: show databases;
 - Step 5: use pankaj;
 
