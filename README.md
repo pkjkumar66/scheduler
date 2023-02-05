@@ -27,9 +27,9 @@ docker run -d -p 3306:3306 --name mysql-docker-container -e MYSQL_ROOT_PASSWORD=
 - Step 5: use pankaj;
 
 ### To start the application
-- Step 1: mvn install
-- Step 2: java -jar target/scheduler-0.0.1-SNAPSHOT.jar
-- Step 3: acess the java app using postman/local terminal
+- Step 1: mvn clean install
+- Step 2: java -jar appointment-booking-app-image.jar
+- Step 3: acess rest apis using postman/local terminal
 
 ---
 ### How to use all APIs:
