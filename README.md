@@ -33,6 +33,7 @@ docker run -d -p 3306:3306 --name mysql-docker-container -e MYSQL_ROOT_PASSWORD=
 
 ---
 ### How to use all APIs:
+  [Postman Collection](https://red-water-686645.postman.co/workspace/My-Workspace~bfb5c795-ecc4-4e23-8ad9-7c7fe4b847b4/collection/25669291-569ed371-008e-4da7-a6ea-b426485b1466?action=share&creator=25669291)
 - CustomerController
   - /add: to add customer
   - /{email}: to get customer info
