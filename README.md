@@ -17,7 +17,7 @@ It's a booking scheduler website for a car service agency where:
 - [use this to install mvn](https://formulae.brew.sh/formula/maven)
 
 ### To start the mysql db instance
-- Step 1: [please check this article]((https://www.appsdeveloperblog.com/how-to-start-mysql-in-docker-container/))
+- Step 1: [please check this article](https://www.appsdeveloperblog.com/how-to-start-mysql-in-docker-container/)
 ```
 docker run -d -p 3306:3306 --name mysql-docker-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=pankaj -e MYSQL_USER=root -e MYSQL_PASSWORD=root mysql/mysql-server:latest
 ```
