@@ -10,7 +10,8 @@ It's a booking scheduler website for a car service agency where:
 ### Dependencies to run this appplication:
 
 - [download homebrew](https://brew.sh/)
-- [download docker ](https://docs.docker.com/desktop/install/mac-install/) to run app/mysql instance
+- [install java 17](https://formulae.brew.sh/formula/openjdk@17)
+- [download docker](https://docs.docker.com/desktop/install/mac-install/) to run app/mysql instance
 - [use this article to set up mysql instance in docker container](https://www.appsdeveloperblog.com/how-to-start-mysql-in-docker-container/)
 - [use this to install mvn](https://formulae.brew.sh/formula/maven)
 
