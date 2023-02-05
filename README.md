@@ -114,7 +114,7 @@ docker run -d -p 3306:3306 --name mysql-docker-container -e MYSQL_ROOT_PASSWORD=
   - I have used: spring.jpa.hibernate.ddl-auto=create-drop
   - to fix above issue we can use: spring.jpa.hibernate.ddl-auto=update
   
-- Error while datatbase setup: \
+- Error while datatbase setup: 
   - check database name
   - check root user name
   - check root user password
