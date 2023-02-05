@@ -9,6 +9,7 @@ It's a booking scheduler website for a car service agency where:
 
 ### Dependencies to run this appplication:
 
+- [java developement IDE](https://www.jetbrains.com/idea/)
 - [download homebrew](https://brew.sh/)
 - [install java 17](https://formulae.brew.sh/formula/openjdk@17)
 - [download docker](https://docs.docker.com/desktop/install/mac-install/) to run app/mysql instance
